@@ -1,7 +1,7 @@
 import pygame
 import settings as cfg
 from screens.game_screen import run as game_screen
-from game.entities import Paddle
+from game.entities import Paddle, Brick
 
 def main():
     pygame.init()
@@ -11,6 +11,12 @@ def main():
 
     running = True
     paddle = Paddle()
+    bricks = [
+        Brick(2, 2, 1),
+        Brick(1, 5, 2),
+        Brick(2, 1, 0),
+        Brick(0, 0, -1)
+    ]
 
     while running:
         # Main Loop
@@ -24,10 +30,12 @@ def main():
         # Draw Section
         paddle.draw(screen)
 
+        for brick in bricks:
+            brick.draw(screen)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:   # Press "close" button
                 running = False
-
 
         pygame.display.flip()   # Screen Update
         clock.tick(cfg.FPS)         # FPS (Frames Per Second)

@@ -26,3 +26,27 @@ class Paddle:
     def draw(self, screen: pygame.Surface) -> None:
         """ Renders the Paddle on the screen. """
         pygame.draw.rect(screen, cfg.PADDLE_COLOR, self.rect, border_radius=5)
+
+
+class Brick:
+    """
+        Class for Game's brick.
+
+        HP = -1: Level Boundary
+        HP = 0: Indestructable
+        HP = 1, 2: One / Two hit
+    """
+    
+    def __init__(self, col: int, row: int, hp: int) -> None:
+        self.hp = hp
+        self.color = cfg.BRICK_COLORS[hp]
+        self.rect = pygame.Rect(
+            cfg.FIELD_LEFT + col * cfg.BRICK_WIDTH,
+            cfg.TOP_OFFSET + row * cfg.BRICK_HEIGHT,
+            cfg.BRICK_WIDTH,
+            cfg.BRICK_HEIGHT,
+        )
+
+    def draw(self, screen: pygame.Surface) -> None:
+        pygame.draw.rect(screen, self.color, self.rect)
+        pygame.draw.rect(screen, cfg.DARK_GRAY, self.rect, 2)
