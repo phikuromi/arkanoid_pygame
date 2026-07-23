@@ -36,7 +36,7 @@ def _bounce_off_rect(ball: Ball, rect: pygame.Rect):
 
         ball.rect.right = rect.left
         ball.vx *= -1
-    elif min_overlap == overlap_right and ball.vy < 0:
+    elif min_overlap == overlap_right and ball.vx < 0:
         print('right')
 
         ball.rect.left = rect.right
