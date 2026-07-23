@@ -23,21 +23,21 @@ def _bounce_off_rect(ball: Ball, rect: pygame.Rect):
     
     # Calculate the Ball's final velocities
     if min_overlap == overlap_top and ball.vy > 0:
-        print('top')
+        
         ball.rect.bottom = rect.top
         ball.vy *= -1
     elif min_overlap == overlap_bottom and ball.vy < 0:
-        print('bottom')
+      
 
         ball.rect.top = rect.bottom
         ball.vy *= -1
     elif min_overlap == overlap_left and ball.vx > 0:
-        print('left')
+        
 
         ball.rect.right = rect.left
         ball.vx *= -1
     elif min_overlap == overlap_right and ball.vx < 0:
-        print('right')
+        
 
         ball.rect.left = rect.right
         ball.vx *= -1
