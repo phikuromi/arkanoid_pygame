@@ -90,3 +90,29 @@ class Ball:
         """ Renders the Ball. """
         colour = cfg.BALL_COLOR
         pygame.draw.circle(screen, colour, self.rect.center, self.radius)
+
+
+class Bonus:
+    """ Falling capsule dropped by a destroyed brick, catch it with paddle. """
+
+    _font = None
+
+    def __init__(self, x: int, y: int, bonus_type: str) -> None:
+        self.type = bonus_type
+        self.color = cfg.BONUS_COLOR[bonus_type]
+        self.letter = cfg.BONUS_LETTER[bonus_type]
+        self.rect = pygame.Rect(0, 0, cfg.BONUS_CAPSULE_SIZE, cfg.BONUS_CAPSULE_SIZE)
+        self.rect.center = (x, y)
+        self.vy = cfg.BONUS_FALL_SPEED
+
+        if Bonus._font is None:
+            Bonus._font = pygame.font.SysFont(None, 20)
+
+    def update(self) -> None:
+        self.rect.y += self.vy
+
+    def draw(self, screen: pygame.Surface) -> None:
+        pygame.draw.rect(screen, self.color, self.rect, border_radius=4)
+        pygame.draw.rect(screen, cfg.WHITE, self.rect, 1, border_radius=4)
+        label = Bonus._font.render(self.letter, True, cfg.BLACK)
+        screen.blit(label, label.get_rect(center=self.rect.center))

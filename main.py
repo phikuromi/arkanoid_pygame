@@ -1,7 +1,9 @@
+import random
+
 import pygame
 import settings as cfg
-from screens.game_screen import run as game_screen
-from game.entities import Paddle, Brick, Ball
+from screens.game_screen import run as game_screen, apply_bonus
+from game.entities import Paddle, Brick, Ball, Bonus
 from game.level import load_level
 
 def _bounce_off_rect(ball: Ball, rect: pygame.Rect):
@@ -43,6 +45,7 @@ def _bounce_off_rect(ball: Ball, rect: pygame.Rect):
 def _handle_ball_vs_bricks(
     ball: Ball,
     bricks: list[Brick],
+    bonuses: list[Bonus],
 ) -> int:
 
     scored = 0
@@ -52,9 +55,12 @@ def _handle_ball_vs_bricks(
         _bounce_off_rect(ball, brick.rect)
         if brick.hp == -1: 
             continue
-        bonus_type = brick.hit()
+        brick.hit()
 
         if brick.hp <= 0:
+            if random.random() < cfg.BONUS_PROBABILITY:
+                bonus_type = random.choice(cfg.BONUS_TYPES)
+                bonuses.append(Bonus(brick.rect.centerx, brick.rect.centery, bonus_type))
             bricks.remove(brick)
             scored += 10
     return scored
@@ -71,12 +77,15 @@ def main():
     screen = pygame.display.set_mode((cfg.WIDTH, cfg.HEIGHT))
     pygame.display.set_caption("Arkanoid")
     clock = pygame.time.Clock()
+    hud_font = pygame.font.SysFont(None, 24)
 
     running = True
     paddle = Paddle()
 
     bricks, rows, cols = load_level(1)
-    ball = Ball(cfg.WIDTH // 2, cfg.HEIGHT)
+    balls = [Ball(cfg.WIDTH // 2, cfg.HEIGHT)]
+    bonuses: list[Bonus] = []
+    state = {"lives": 3, "score": 0}
 
     while running:
         # Main Loop
@@ -87,19 +96,42 @@ def main():
 
         paddle.move(keys)
 
-        _handle_ball_vs_bricks(ball, bricks)
+        for ball in balls:
+            state["score"] += _handle_ball_vs_bricks(ball, bricks, bonuses)
+            if ball.rect.colliderect(paddle.rect) and ball.vy > 0:
+                _handle_ball_vs_paddle(ball, paddle)
+            ball.update()
 
-        if ball.rect.colliderect(paddle.rect) and ball.vy > 0:
-            _handle_ball_vs_paddle(ball, paddle)
+        # if every ball fell past the paddle, lose a life and respawn
+        balls = [b for b in balls if b.rect.top < cfg.HEIGHT]
+        if not balls:
+            state["lives"] -= 1
+            if state["lives"] <= 0:
+                running = False
+            else:
+                balls = [Ball(cfg.WIDTH // 2, cfg.HEIGHT)]
+
+        # bonuses falling / caught by paddle
+        for bonus in bonuses[:]:
+            bonus.update()
+            if bonus.rect.colliderect(paddle.rect):
+                apply_bonus(bonus.type, paddle, balls, state)
+                bonuses.remove(bonus)
+            elif bonus.rect.top > cfg.HEIGHT:
+                bonuses.remove(bonus)
 
         for brick in bricks:
             brick.draw(screen)
 
-        ball.update()
-
         # Draw Section
         paddle.draw(screen)
-        ball.draw(screen)
+        for ball in balls:
+            ball.draw(screen)
+        for bonus in bonuses:
+            bonus.draw(screen)
+
+        hud = hud_font.render(f"Score: {state['score']}   Lives: {state['lives']}", True, cfg.WHITE)
+        screen.blit(hud, (cfg.FIELD_LEFT, 20))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:   # Press "close" button
